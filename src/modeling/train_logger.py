@@ -52,7 +52,7 @@ def tb_write_metrics(
 
     # Write losses to tb
     tbwriter.writer().add_scalar(f"Loss/Loss_D", errD, tot_iter_ctr)
-    tbwriter.writer().add_scalar(f"Loss/Loss_D", errG, tot_iter_ctr)
+    tbwriter.writer().add_scalar(f"Loss/Loss_G", errG, tot_iter_ctr)
 
     # Write losses to file:
     msg = '[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f' \

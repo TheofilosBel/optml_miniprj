@@ -128,7 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-#Dont upload data folders
+# Other rules
 data/*
 tensorboard/*
 *.png
+.vscode
