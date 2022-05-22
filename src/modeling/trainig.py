@@ -4,13 +4,13 @@ import torch
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from torch.nn.modules.loss import _Loss
+from src.modeling.utils import save_checkpoint
 import torchvision.utils as vutils
 from src.utils import plot_real_vs_fake_imgs
 from tqdm import tqdm
 
 from src.modeling.gan import GAN
 from src.modeling.train_logger import TBWritter, tb_write_metrics
-
 
 
 
@@ -27,6 +27,8 @@ def train(
     '''
     # Lazily initialized tensorboard writter
     tbwriter = TBWritter(args)
+
+    print_training_args(args)
 
     # Create batch of latent vectors that we will use to visualize
     #  the progression of the generator
@@ -97,7 +99,7 @@ def train(
             optimizerG.step()
 
             # Output training stats
-            if i % args.nb_log_steps == 0:
+            if (iters % args.nb_log_steps == 0) or ((epoch == args.num_epochs-1) and (i == len(dataloader)-1)):
                 tb_write_metrics(args, tbwriter, errD.item(), errG.item(), epoch, i, iters, len(dataloader), D_x, D_G_z1, D_G_z2)
 
             # Check how the generator is doing by saving G's output on fixed_noise
@@ -108,7 +110,20 @@ def train(
 
             iters += 1
 
+        # Save per epoch
+        save_checkpoint(gan, args, epoch, iters)
+
+
     # Print real and fake images
     real_batch = next(iter(dataloader))
-    plot_real_vs_fake_imgs(real_batch, img_list)
+    plot_real_vs_fake_imgs(real_batch, img_list, device)
 
+
+
+def print_training_args(args):
+    print("~~ Training Argumnets ~~")
+    print(f"\tEpochs:{args.num_epochs}")
+    print(f"\tlr :{args.lr}")
+    print(f"\tAdam beta:{args.beta1}")
+    print(f"\Logging every :{args.nb_log_steps} steps")
+    print(f"\tGan args: z_size={args.nz}, g_feats_size={args.ngf}, d_feats_size={args.ndf}")

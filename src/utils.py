@@ -46,8 +46,5 @@ def create_tb_dir(args) -> None:
 
     dumps_dir = op.join(args.tb_dumps_dir, args.model_checkpoint_prefix)
     os.mkdir(dumps_dir)
-    # Dump args
-    torch.save(args, op.join(dumps_dir,"config.pt"))
 
     return  dumps_dir
-

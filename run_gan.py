@@ -36,6 +36,7 @@ def main():
 
     # Create GAN
     gan = GAN(args)
+    gan.to(device)
 
     # Handle multi-gpu if desired
     if (device.type == 'cuda') and (args.ngpu > 1):

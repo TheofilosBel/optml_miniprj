@@ -40,8 +40,8 @@ def tb_write_metrics(
     errD: float,
     errG: float,
     epoch: int,
-    cur_iter_ctr: int,
-    tot_iter_ctr: int,
+    cur_e_iter: int,
+    tot_iter: int,
     tot_dl_size: int,
     D_x:float, D_G_z1:float, D_G_z2:float
 ) -> None :
@@ -51,12 +51,12 @@ def tb_write_metrics(
     # TB is lazily intied here to avoid creating multiple dir when bugs exist and program doesn't run
 
     # Write losses to tb
-    tbwriter.writer().add_scalar(f"Loss/Loss_D", errD, tot_iter_ctr)
-    tbwriter.writer().add_scalar(f"Loss/Loss_G", errG, tot_iter_ctr)
+    tbwriter.writer().add_scalar(f"Loss/Loss_D", errD, tot_iter)
+    tbwriter.writer().add_scalar(f"Loss/Loss_G", errG, tot_iter)
 
     # Write losses to file:
     msg = '[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f' \
-        % (epoch, args.num_epochs, cur_iter_ctr, tot_dl_size, errD, errG, D_x, D_G_z1, D_G_z2)
+        % (epoch, args.num_epochs, cur_e_iter, tot_dl_size, errD, errG, D_x, D_G_z1, D_G_z2)
     tbwriter.write_to_file(msg)
 
     return

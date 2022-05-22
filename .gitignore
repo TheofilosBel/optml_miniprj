@@ -133,3 +133,5 @@ data/*
 tensorboard/*
 *.png
 .vscode
+train-gan*.out
+checkpoints/*

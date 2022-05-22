@@ -7,6 +7,12 @@ def parse_args():
     # The tensorboard dump dir
     argparser.add_argument("--tb_dumps_dir", type=str, default="./tensorboard")
 
+    # Checkpointing args
+    argparser.add_argument("--checkpoint_dir", type=str, default="./checkpoints")
+    argparser.add_argument('--checkpoint_policy', type=int, default=0,
+        help="Checkpoint policy: 0 -> Save all models | 1 -> Save nb_best_saved_models \
+            2 -> Save best args.nb_best_saved_models per epoch")
+
     # Root directory for dataset
     argparser.add_argument("--dataroot", type=str, default="./data")
 

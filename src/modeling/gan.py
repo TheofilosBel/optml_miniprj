@@ -1,7 +1,7 @@
 import nntplib
 import torch
 import torch.nn as nn
-
+import os.path as op
 
 
 
@@ -20,7 +20,6 @@ def weights_init(m):
 
 
 #  --- Model defintion ---
-
 
 class Generator(nn.Module):
     def __init__(self, args):
@@ -82,7 +81,7 @@ class Discriminator(nn.Module):
         return self.main(input)
 
 
-class GAN:
+class GAN(nn.Module):
     def __init__(self, args) -> None:
         super().__init__()
         # Create the generator
@@ -93,3 +92,9 @@ class GAN:
         #  to mean=0, stdev=0.02.
         self.netG.apply(weights_init)
         self.netD.apply(weights_init)
+
+    def save(self, path):
+        torch.save(self.state_dict(), op.join(path, "model.pt"))
+
+    def load(self, path):
+        self.load_state_dict(torch.load(op.join(path, "model.pt")))
