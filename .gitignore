@@ -132,6 +132,11 @@ dmypy.json
 data/*
 tensorboard/*
 *.png
+*.out
 .vscode
 train-gan*.out
 checkpoints/*
+inception_features/*
+
+script_inc.run
+script_train.run

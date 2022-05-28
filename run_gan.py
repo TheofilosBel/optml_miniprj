@@ -51,8 +51,5 @@ def main():
     train(args, gan, dataloader, criterion, optimizerD, optimizerG, device)
 
 
-
-
-
 if __name__ == '__main__':
     main()

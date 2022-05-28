@@ -1,36 +1,25 @@
-from datetime import datetime
-from enum import Enum
 from logging import Logger
 import shutil
 import os.path as op
 import os
-import json
-from time import time
 import torch
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from transformers import PreTrainedModel, PreTrainedTokenizer, PretrainedConfig
 
 logger = Logger('utils')
 
 
 class CheckpointPolicy:
-    SAVE_ALL=0                  # Save all models
-    SAVE_BEST=1                 # Save best args.nb_models2save
-    SAVE_BEST_PER_EPOCH=2       # Save best args.nb_models2save per epoch
+    SAVE_ALL=0            # Save all models
+    SAVE_BEST=1           # Save best args.nb_models2save
+    SAVE_BEST_PER_EPOCH=2 # Save best args.nb_models2save per epoch
 
 
 def _save_model(
     model,
     args,
-    save_path,
-    tokenizer= None
+    save_path
 ):
     model.save(save_path)
     torch.save(args, op.join(save_path, 'training_args.bin'))
-    if tokenizer:
-        os.mkdir(op.join(save_path, "tokenizer/"))
-        tokenizer.save_pretrained(op.join(save_path, "tokenizer/"))
-
 
 def remove_checkpoint(
     base,
@@ -50,10 +39,9 @@ def save_checkpoint(
     epoch,
     global_step,
     best_models = None,
-    model_metric: float = None,
-    tokenizer = None
+    model_metric: float = None
 ) -> None:
-    """ Save the model, the tokenizer and the args given the epoch and the global step.
+    """ Save the model, the args given the epoch and the global step.
         If `args.nb_models2save` is not 0 then we keep the best models base
         on the `model_metric` usually the r@1 .
     """
@@ -98,16 +86,15 @@ def save_checkpoint(
 
     # Create checkpoint
     os.makedirs(op.join(checkpoint_base, specific_dir))
-    _save_model(model, args, op.join(checkpoint_base,specific_dir), tokenizer)
+    _save_model(model, args, op.join(checkpoint_base,specific_dir))
 
 
 def load_checkpoint(
     args,
     device,
-    model_class,
-    tokenizer_class: PreTrainedTokenizer = None
+    model_class
 ):
-    """ Load from a checkpoint the model and the tokenizer
+    """ Load from a checkpoint the model
     """
     model_path = args.model_path
     args = torch.load(op.join(args.model_path, 'training_args.bin'))
@@ -116,8 +103,4 @@ def load_checkpoint(
     model.load(model_path)
     model.to(device)
 
-    if tokenizer_class != None:
-        tokenizer = tokenizer_class.load_pretrained(op.join(args.model_path, "tokenizer/"))
-        return model, tokenizer
-    else:
-        return model
+    return model
