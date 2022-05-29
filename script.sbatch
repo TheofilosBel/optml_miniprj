@@ -13,4 +13,6 @@
 # Load modules and environment packages
 source env
 
-python ./run_gan.py
+# path="path-to-code"
+
+python ./run_gan.py $1

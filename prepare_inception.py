@@ -3,6 +3,7 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
+from tqdm import tqdm
 
 import argparse
 from src.dataset import create_dl, create_dataset
@@ -14,7 +15,7 @@ def extract_features(args, loader, inception, device):
     pbar = loader
     pools, logits = [], []
 
-    for data in pbar:
+    for data in tqdm(pbar, desc='Extract feats'):
         data = data[0].to(device)
         pool_val, logits_val = inception(data)
 
@@ -43,7 +44,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    inception = inception_utils.load_inception_net()
+    inception = inception_utils.load_inception_net(device)
 
     # Create dataset and dataloader
     dataset = create_dataset(args)

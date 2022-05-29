@@ -1,6 +1,7 @@
 from __future__ import print_function
 #%matplotlib inline
 import os
+import sys
 import random
 import torch
 import torch.nn as nn
@@ -10,8 +11,17 @@ import torch.optim as optim
 from src.args import parse_args
 from src.dataset import create_dl, create_dataset
 from src.modeling.gan import GAN
+from src.modeling.optimizers.utils import update_optim_args
 from src.modeling.trainig import train
 from src.utils import plot_img
+
+# Import all optimizers even if not used, so str_to_cls can work
+from src.modeling.optimizers.extragradient import ExtraAdam, ExtraSGD
+from torch.optim import Adam, SGD
+
+
+def str_to_cls(cls_name:str):
+    return getattr(sys.modules[__name__], cls_name)
 
 def main():
     # Parse arguments
@@ -32,7 +42,7 @@ def main():
 
     # Plot some training images
     real_batch = next(iter(dataloader))
-    plot_img(real_batch, device)
+    plot_img(args, real_batch, device)
 
     # Create GAN
     gan = GAN(args)
@@ -45,9 +55,14 @@ def main():
 
     # Loss and optimizer
     criterion = nn.BCELoss()
-    optimizerD = optim.Adam(gan.netD.parameters(), lr=args.lr, betas=(args.beta1, 0.999))
-    optimizerG = optim.Adam(gan.netG.parameters(), lr=args.lr, betas=(args.beta1, 0.999))
 
+    optD_params = update_optim_args(args, {'params':gan.netD.parameters(), 'lr':args.lr})
+    optimizerD = str_to_cls(args.optim)(**optD_params)
+
+    optG_params = update_optim_args(args, {'params':gan.netG.parameters(), 'lr':args.lr})
+    optimizerG = str_to_cls(args.optim)(**optG_params)
+
+    #  Start training
     train(args, gan, dataloader, criterion, optimizerD, optimizerG, device)
 
 

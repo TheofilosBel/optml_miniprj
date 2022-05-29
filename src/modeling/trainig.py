@@ -2,16 +2,17 @@ from csv import writer
 from typing import Any, List
 import torch
 
-from torch.utils.data import DataLoader
 import torch.optim as optim
-from torch.nn.modules.loss import _Loss
 import torchvision.utils as vutils
-from tqdm import tqdm
 import functools
+from torch.utils.data import DataLoader
+from torch.nn.modules.loss import _Loss
+from src.modeling.utils import save_checkpoint
+from tqdm import tqdm
 
 from src.modeling.utils import save_checkpoint
 from src.modeling.gan import GAN
-from src.modeling.train_logger import TBWritter, tb_write_metrics
+from src.modeling.train_logger import TBWritter, tb_write_fid, tb_write_metrics
 from src.utils import plot_real_vs_fake_imgs
 from src.inception_utils import sample_gema, prepare_inception_metrics
 
@@ -95,7 +96,13 @@ def train(
             errD = errD_real + errD_fake
 
             # Update D
-            optimizerD.step()
+            if "ExtraAdam" == args.optim:
+                if i % 2 == 0:
+                    optimizerD.extrapolation()
+                else:
+                    optimizerD.step()
+            else:
+                optimizerD.step()
 
             ############################
             # (2) Update G network: maximize log(D(G(z)))
@@ -115,18 +122,23 @@ def train(
             D_G_z2 = output.mean().item()
 
             # Update G
-            optimizerG.step()
+            if "ExtraAdam" == args.optim:
+                if i % 2 == 0:
+                    optimizerG.extrapolation()
+                else:
+                    optimizerG.step()
+            else:
+                optimizerG.step()
 
             # Output training stats
             if (iters % args.nb_log_steps == 0) or ((epoch == args.num_epochs-1) and (i == len(dataloader)-1)):
                 tb_write_metrics(args, tbwriter, errD.item(), errG.item(), epoch, i, iters, len(dataloader), D_x, D_G_z1, D_G_z2)
 
             # Check how the generator is doing by saving G's output on fixed_noise
-            if (iters % 250 == 0) or ((epoch == args.num_epochs-1) and (i == len(dataloader)-1)):
-                print("========== Start calculating FID ==========", flush=True)
+            if (iters % args.nb_fid_log_steps == 0) or ((epoch == args.num_epochs-1) and (i == len(dataloader)-1)):
                 IS_mean, IS_std, FID = get_inception_metrics(sample_fn, num_inception_images=10000, use_torch=False)
-                print("iteration {0:05d} FID {1:.4f} IS_mean {2:.4f} IS_std {3:.4f}".format(iters, FID, IS_mean, IS_std), flush=True)
 
+                tb_write_fid(args, tbwriter, IS_mean, IS_std, FID, epoch, i, iters, len(dataloader))
                 with torch.no_grad():
                     fake = gan.netG(fixed_noise).detach().cpu()
                 img_list.append(vutils.make_grid(fake, padding=2, normalize=True))
@@ -138,7 +150,7 @@ def train(
 
     # Print real and fake images
     real_batch = next(iter(dataloader))
-    plot_real_vs_fake_imgs(real_batch, img_list, device)
+    plot_real_vs_fake_imgs(args, real_batch, img_list, device)
 
 
 def print_training_args(args):
@@ -146,5 +158,5 @@ def print_training_args(args):
     print(f"\tEpochs:{args.num_epochs}")
     print(f"\tlr :{args.lr}")
     print(f"\tAdam beta:{args.beta1}")
-    print(f"\Logging every :{args.nb_log_steps} steps")
+    print(f"\tLogging every :{args.nb_log_steps} steps")
     print(f"\tGan args: z_size={args.nz}, g_feats_size={args.ngf}, d_feats_size={args.ndf}")

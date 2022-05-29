@@ -245,9 +245,9 @@ def accumulate_inception_activations(sample, net, num_inception_images=50000):
 
 
 # Load and wrap the Inception model
-def load_inception_net(parallel=False):
+def load_inception_net(device, parallel=False):
     inception_model = inception_v3(pretrained=True, transform_input=False)
-    inception_model = WrapInception(inception_model.eval()).cuda()
+    inception_model = WrapInception(inception_model.eval()).to(device)
     if parallel:
         print('Parallelizing Inception module...')
         inception_model = nn.DataParallel(inception_model)
@@ -281,13 +281,13 @@ def prepare_inception_metrics(dataset, parallel, no_fid=False):
             FID = 9999.0
         else:
             if prints:
-                # print('Calculating means and covariances...')
+                print('Calculating means and covariances...')
             if use_torch:
                 mu, sigma = torch.mean(pool, 0), torch_cov(pool, rowvar=False)
             else:
                 mu, sigma = np.mean(pool.cpu().numpy(), axis=0), np.cov(pool.cpu().numpy(), rowvar=False)
         if prints:
-            # print('Covariances calculated, getting FID...')
+            print('Covariances calculated, getting FID...')
         if use_torch:
             import pdb; pdb.set_trace()
             FID = torch_calculate_frechet_distance(mu, sigma, torch.tensor(data_mu).float().cuda(), torch.tensor(data_sigma).float().cuda())

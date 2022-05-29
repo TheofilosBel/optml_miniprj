@@ -24,4 +24,8 @@ Use poetry instead or anaconda (poetry is recommended). Install poetry using:  h
 
 
 ## Run server
-TODO
+
+Use the following:
+```bash
+sbatch sbatch.script "--optim <name>"   # Name can be: 'SGD, Adam, ExtraAdam, ExtraSGD)
+```
