@@ -83,7 +83,7 @@ def tb_write_fid(
     tbwriter.writer().add_scalar(f"IS/is_std", IS_std, tot_iter)
 
     # Write losses to file:
-    msg = '[%d/%d][%d/%d]\tIS_mean: %.4f\tIS_std: %.4f\tFIN: %.4f\t' \
+    msg = '[%d/%d][%d/%d]\tIS_mean: %.4f\tIS_std: %.4f\tFID: %.4f\t' \
         % (epoch, args.num_epochs, cur_e_iter, e_size, IS_mean, IS_std, fid)
     tbwriter.write_to_file(msg)
 
