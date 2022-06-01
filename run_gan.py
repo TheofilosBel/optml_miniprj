@@ -56,10 +56,10 @@ def main():
     # Loss and optimizer
     criterion = nn.BCELoss()
 
-    optD_params = update_optim_args(args, {'params':gan.netD.parameters(), 'lr':args.lr})
+    optD_params = update_optim_args(args, {'params':gan.netD.parameters(), 'lr':args.lr_D})
     optimizerD = str_to_cls(args.optim)(**optD_params)
 
-    optG_params = update_optim_args(args, {'params':gan.netG.parameters(), 'lr':args.lr})
+    optG_params = update_optim_args(args, {'params':gan.netG.parameters(), 'lr':args.lr_G})
     optimizerG = str_to_cls(args.optim)(**optG_params)
 
     #  Start training

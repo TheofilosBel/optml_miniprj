@@ -9,7 +9,8 @@ def parse_args():
     parser.add_argument("--optim", type=str, required=True, help='The optimizer to use (SGD, Adam, ExtraAdam, ExtraSGD)')
 
     # Learning rate for optimizers
-    parser.add_argument("--lr", type=float, default=0.0002)
+    parser.add_argument("--lr_G", type=float, default=0.0002)
+    parser.add_argument("--lr_D", type=float, default=0.0002)
 
     # Beta1 hyperparam for Adam optimizers
     parser.add_argument("--beta1", type=float, default=0.5)
