@@ -156,7 +156,8 @@ def train(
 def print_training_args(args):
     print("~~ Training Argumnets ~~")
     print(f"\tEpochs:{args.num_epochs}")
-    print(f"\tlr :{args.lr}")
-    print(f"\tAdam beta:{args.beta1}")
+    print(f"\tlrD :{args.lr_D}")
+    print(f"\tlrG :{args.lr_G}")
+    print(f"\{args.optim} beta:{args.beta1}")
     print(f"\tLogging every :{args.nb_log_steps} steps")
     print(f"\tGan args: z_size={args.nz}, g_feats_size={args.ngf}, d_feats_size={args.ndf}")

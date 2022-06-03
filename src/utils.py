@@ -63,15 +63,16 @@ def create_tb_dir(args) -> None:
     else:
         # Format the name using some of the args given
         args.model_checkpoint_prefix = \
-            f"gan_ep{args.num_epochs}_lr{args.lr}_bsz{args.batch_size}_imsz{args.image_size}" \
+            f"gan_ep{args.num_epochs}_lrD{args.lr_D}_lrG{args.lr_G}_bsz{args.batch_size}_imsz{args.image_size}" \
             f"optbeta{args.beta1}" + \
             f"{dt.datetime.now().isoformat()}"
 
 
     dumps_dir = op.join(base_path, args.model_checkpoint_prefix)
     os.mkdir(dumps_dir)
+    torch.save(args, op.join(dumps_dir, 'args.pt'))
 
-    return  dumps_dir
+    return dumps_dir
 
 
 def param_generator(param_list: List):
