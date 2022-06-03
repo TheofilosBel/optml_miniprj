@@ -271,23 +271,17 @@ def prepare_inception_metrics(dataset, parallel, no_fid=False):
     net = load_inception_net(parallel)
 
     def get_inception_metrics(sample, num_inception_images, num_splits=10, prints=True, use_torch=True):
-        if prints:
-            # print('Gathering activations...')
-            pool, logits = accumulate_inception_activations(sample, net, num_inception_images)
-        if prints:
-            # print('Calculating Inception Score...')
-            IS_mean, IS_std = calculate_inception_score(logits.cpu().numpy(), num_splits)
+        pool, logits = accumulate_inception_activations(sample, net, num_inception_images)
+        IS_mean, IS_std = calculate_inception_score(logits.cpu().numpy(), num_splits)
+
         if no_fid:
             FID = 9999.0
         else:
-            if prints:
-                print('Calculating means and covariances...')
             if use_torch:
                 mu, sigma = torch.mean(pool, 0), torch_cov(pool, rowvar=False)
             else:
                 mu, sigma = np.mean(pool.cpu().numpy(), axis=0), np.cov(pool.cpu().numpy(), rowvar=False)
-        if prints:
-            print('Covariances calculated, getting FID...')
+
         if use_torch:
             import pdb; pdb.set_trace()
             FID = torch_calculate_frechet_distance(mu, sigma, torch.tensor(data_mu).float().cuda(), torch.tensor(data_sigma).float().cuda())

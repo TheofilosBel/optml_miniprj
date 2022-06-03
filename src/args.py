@@ -71,9 +71,9 @@ def parse_args():
     # When to print losses
     parser.add_argument("--nb_log_steps", type=int, default=10)
 
-    parser.add_argument("--nb_fid_log_steps", type=int, default=250, help="how often to calculate fin")
+    parser.add_argument("--nb_fid_log_steps", type=int, default=1000, help="how often to calculate FID")
 
     # Number of training epochs
-    parser.add_argument("--num_epochs", type=int, default=10)
+    parser.add_argument("--num_epochs", type=int, default=50)
 
     return parser.parse_args()
