@@ -18,10 +18,12 @@ def plot_img(args, real_batch, device):
     plt.title("Training Images")
     plt.imsave(op.join(args.img_dumps_dir, "test.png") , img_grid.numpy())
 
+def save_gen_images(args, img_list):
+    torch.save(img_list, op.join(args.img_dumps_dir, "gen_imgs.pt"))
+
 def plot_real_vs_fake_imgs(args, real_batch, fake_img_list, device):
     if not op.isdir(args.img_dumps_dir):
         os.mkdir(args.img_dumps_dir)
-
 
     # Plot the real images
     plt.figure(figsize=(15,15))
@@ -39,7 +41,7 @@ def plot_real_vs_fake_imgs(args, real_batch, fake_img_list, device):
     plt.show()
 
 
-def create_tb_dir(args) -> None:
+def create_tb_dir(args):
     """
         Create the tensor board directory for the current training.
     """
@@ -51,28 +53,22 @@ def create_tb_dir(args) -> None:
     if not op.isdir(base_path):
         os.mkdir(base_path)
 
-    # Check if args contain the "ConfigurableParams" field that will overwrite the usual dir name
-    if hasattr(args, "config_params") and isinstance(args.config_params, dict):
-        config_params_str = "_".join([f"{k}{v}" for k,v in args.config_params.items()])
-
-        # Format the name using some of the args given
-        args.model_checkpoint_prefix = \
-            f"exps_gan_ep{args.num_epochs}" + \
-             "_" + config_params_str +  \
-            f"{dt.datetime.now().isoformat()}"
-    else:
-        # Format the name using some of the args given
-        args.model_checkpoint_prefix = \
-            f"gan_ep{args.num_epochs}_lrD{args.lr_D}_lrG{args.lr_G}_bsz{args.batch_size}_imsz{args.image_size}" \
-            f"optbeta{args.beta1}" + \
-            f"{dt.datetime.now().isoformat()}"
+    # Format the name using some of the args given
+    args.model_checkpoint_prefix = \
+        f"gan_ep{args.num_epochs}_lrD{args.lr_D}_lrG{args.lr_G}_bsz{args.batch_size}_imsz{args.image_size}" \
+        f"optbeta{args.beta1}_{'wgangp' if args.wgan_gp else ''}_"\
+        f"{dt.datetime.now().isoformat().replace('-', '_').replace(':', '_')}"
 
 
     dumps_dir = op.join(base_path, args.model_checkpoint_prefix)
     os.mkdir(dumps_dir)
     torch.save(args, op.join(dumps_dir, 'args.pt'))
 
+    # set the same dir as the dir for the images also
+    args.img_dumps_dir = dumps_dir
+
     return dumps_dir
+
 
 
 def param_generator(param_list: List):

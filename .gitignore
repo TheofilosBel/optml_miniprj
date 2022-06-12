@@ -129,6 +129,8 @@ dmypy.json
 .pyre/
 
 # Other rules
+run-output/
+scripts
 data/*
 tensorboard/*
 *.png

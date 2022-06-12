@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.parallel
 import torch.optim as optim
+from torch.nn import BCELoss
 
 from src.args import parse_args
 from src.dataset import create_dl, create_dataset
@@ -54,7 +55,7 @@ def main():
         gan.netG = nn.DataParallel(gan.netG, list(range(args.ngpu)))
 
     # Loss and optimizer
-    criterion = nn.BCELoss()
+    criterion = nn.BCELoss() # it might be overwritten by wgan if model is wgan
 
     optD_params = update_optim_args(args, {'params':gan.netD.parameters(), 'lr':args.lr_D})
     optimizerD = str_to_cls(args.optim)(**optD_params)
