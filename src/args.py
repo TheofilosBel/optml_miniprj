@@ -27,6 +27,11 @@ def parse_args():
     #
     #  Model parameters
     #
+
+    # When set, model is trained as a WGAN with GP
+    parser.add_argument("--wgan_gp", action="store_true")
+    parser.add_argument("--l_gp", type=float, default=10)
+
     # Batch size during training
     parser.add_argument("--batch_size", type=int, default=128)
 
@@ -69,10 +74,11 @@ def parse_args():
     # Number of workers for dataloader
     parser.add_argument("--workers", type=int, default=8)
 
-    # When to print losses
+    # When to log
     parser.add_argument("--nb_log_steps", type=int, default=10)
-
     parser.add_argument("--nb_fid_log_steps", type=int, default=250, help="how often to calculate fin")
+    parser.add_argument("--fake_img_log_interval", type=int, default=1, help="How often in the range of epochs should we print fake images")
+    parser.add_argument("--nb_fake_img", type=int, default=4, help="How many fake images to create per interval")
 
     # Number of training epochs
     parser.add_argument("--num_epochs", type=int, default=10)
