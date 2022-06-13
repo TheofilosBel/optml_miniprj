@@ -27,6 +27,11 @@ def parse_args():
     #
     #  Model parameters
     #
+
+    # When set, model is trained as a WGAN with GP
+    parser.add_argument("--wgan_gp", action="store_true")
+    parser.add_argument("--l_gp", type=float, default=10)
+
     # Batch size during training
     parser.add_argument("--batch_size", type=int, default=128)
 
@@ -62,17 +67,18 @@ def parse_args():
 
     # Checkpointing args
     parser.add_argument("--checkpoint_dir", type=str, default="./checkpoints")
-    parser.add_argument('--checkpoint_policy', type=int, default=0,
+    parser.add_argument('--checkpoint_policy', type=int, default=-1,
         help="Checkpoint policy: 0 -> Save all models | 1 -> Save nb_best_saved_models \
             2 -> Save best args.nb_best_saved_models per epoch")
 
     # Number of workers for dataloader
     parser.add_argument("--workers", type=int, default=8)
 
-    # When to print losses
+    # When to log
     parser.add_argument("--nb_log_steps", type=int, default=10)
-
-    parser.add_argument("--nb_fid_log_steps", type=int, default=1000, help="how often to calculate FID")
+    parser.add_argument("--nb_fid_log_steps", type=int, default=250, help="how often to calculate fin")
+    parser.add_argument("--fake_img_log_interval", type=int, default=1, help="How often in the range of epochs should we print fake images")
+    parser.add_argument("--nb_fake_img", type=int, default=4, help="How many fake images to create per interval")
 
     # Number of training epochs
     parser.add_argument("--num_epochs", type=int, default=50)
