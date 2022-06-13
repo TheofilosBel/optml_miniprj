@@ -74,16 +74,17 @@ def train(
                 IS_mean, IS_std, FID = get_inception_metrics(sample_fn, num_inception_images=10000, use_torch=False)
                 tb_write_fid(args, tbwriter, IS_mean, IS_std, FID, epoch, i, iters, len(dataloader))
 
+
         if epoch % args.fake_img_log_interval == 0 or epoch == args.num_epochs-1:
             with torch.no_grad():
                 fake = gan.netG(fixed_noise).detach().cpu()
             img_list.append(fake)
+            save_gen_images(args, img_list)
 
         # Save per epoch
-        save_checkpoint(gan, args, epoch, iters)
+        # save_checkpoint(gan, args, epoch, iters)
 
-    # Save in the tensorboard dir the images
-    save_gen_images(args, img_list)
+
 
     # Uncomment to plot images (TODO fix makegrid)
     # real_batch = next(iter(dataloader))
@@ -153,7 +154,7 @@ def _train_D(
         errD.backward()
 
     # Optimizer step
-    if "ExtraAdam" == args.optim:
+    if "Extra" == args.optim[:5]:
         if i % 2 == 0:
             optimizerD.extrapolation()
         else:
@@ -195,7 +196,7 @@ def _train_G(
     D_G_z2 = output.mean().item()
 
     # Update G
-    if "ExtraAdam" == args.optim:
+    if "Extra" == args.optim[:5]:
         if i % 2 == 0:
             optimizerG.extrapolation()
         else:

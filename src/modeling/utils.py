@@ -8,6 +8,7 @@ logger = Logger('utils')
 
 
 class CheckpointPolicy:
+    SAVE_NONE=-1
     SAVE_ALL=0            # Save all models
     SAVE_BEST=1           # Save best args.nb_models2save
     SAVE_BEST_PER_EPOCH=2 # Save best args.nb_models2save per epoch
@@ -45,6 +46,9 @@ def save_checkpoint(
         If `args.nb_models2save` is not 0 then we keep the best models base
         on the `model_metric` usually the r@1 .
     """
+    if args.checkpoint_policy == CheckpointPolicy.SAVE_NONE:
+        return
+
     # Create a checkpoint dir for all the checkpoints
     checkpoint_base = op.join(args.checkpoint_dir, f'{args.model_checkpoint_prefix}-checkpoints')
     if not op.isdir(checkpoint_base):
