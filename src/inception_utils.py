@@ -245,9 +245,9 @@ def accumulate_inception_activations(sample, net, num_inception_images=50000):
 
 
 # Load and wrap the Inception model
-def load_inception_net(parallel=False):
+def load_inception_net(device, parallel=False):
     inception_model = inception_v3(pretrained=True, transform_input=False)
-    inception_model = WrapInception(inception_model.eval()).cuda()
+    inception_model = WrapInception(inception_model.eval()).to(device)
     if parallel:
         print('Parallelizing Inception module...')
         inception_model = nn.DataParallel(inception_model)
@@ -256,22 +256,22 @@ def load_inception_net(parallel=False):
 
 # This checks if the inception pkl exists and if not returns a function that on call
 # prints a warning and returns 0 values
-def prepare_inception_metrics_wrapper(dataset, parallel, no_fid=False):
-    def wran_for_noincetpion(sample, num_inception_images, num_splits=10, prints=True, use_torch=True):
+def prepare_inception_metrics_wrapper(dataset, device, parallel, no_fid=False):
+    def wran_for_noincetpion(sample, num_inception_images, device, num_splits=10, prints=True, use_torch=True):
         print(f"[WARN] Inception dataset set to {dataset}, but it dosen't exist! Reurn NaN inception & FID")
         return np.NaN, np.NaN, np.NaN
-    def nowarn_for_noinception(sample, num_inception_images, num_splits=10, prints=True, use_torch=True):
+    def nowarn_for_noinception(sample, num_inception_images, device, num_splits=10, prints=True, use_torch=True):
         return np.NaN, np.NaN, np.NaN
 
     # If dataset has len() == 0 then we want to skip inception
-    if len(dataset) == 0 or dataset != None:
+    if len(dataset) == 0 or dataset == None:
         return nowarn_for_noinception
 
     #  if the dataset is not None or just empty then wawrn at very iter
     if op.isfile(dataset):
-        return prepare_inception_metrics(dataset, parallel, no_fid)
+        return prepare_inception_metrics(dataset, device, parallel, no_fid)
     else:
-        print(f"[WARN] Inception dataset set to {dataset}, but it dosen't exist! Reurn NaN inception & FID")
+        print(f"[WARN] Inception dataset set to {dataset}, but it dosen't exist! If you dont want inception score set arg to empty string or None.")
         return wran_for_noincetpion
 
 
@@ -279,7 +279,7 @@ def prepare_inception_metrics_wrapper(dataset, parallel, no_fid=False):
 # and iterates until it accumulates config['num_inception_images'] images.
 # The iterator can return samples with a different batch size than used in
 # training, using the setting confg['inception_batchsize']
-def prepare_inception_metrics(dataset, parallel, no_fid=False):
+def prepare_inception_metrics(dataset, device, parallel, no_fid=False):
     # Load metrics; this is intentionally not in a try-except loop so that
     # the script will crash here if it cannot find the Inception moments.
     # By default, remove the "hdf5" from dataloader
@@ -289,11 +289,12 @@ def prepare_inception_metrics(dataset, parallel, no_fid=False):
         data_sigma = embeds['cov']
 
     # Load network
-    net = load_inception_net(parallel)
+    net = load_inception_net(device, parallel)
 
-    def get_inception_metrics(sample, num_inception_images, num_splits=10, prints=True, use_torch=True):
+    def get_inception_metrics(sample, num_inception_images, device, num_splits=10, prints=True, use_torch=True):
         pool, logits = accumulate_inception_activations(sample, net, num_inception_images)
         IS_mean, IS_std = calculate_inception_score(logits.cpu().numpy(), num_splits)
+
 
         if no_fid:
             FID = 9999.0
@@ -307,12 +308,15 @@ def prepare_inception_metrics(dataset, parallel, no_fid=False):
             pass
         if use_torch:
             import pdb; pdb.set_trace()
-            FID = torch_calculate_frechet_distance(mu, sigma, torch.tensor(data_mu).float().cuda(), torch.tensor(data_sigma).float().cuda())
+            FID = torch_calculate_frechet_distance(
+                mu, sigma, torch.tensor(data_mu).float().to(device),
+                torch.tensor(data_sigma).float().to(device))
             FID = float(FID.cpu().numpy())
         else:
             FID = numpy_calculate_frechet_distance(mu, sigma, data_mu, data_sigma)
         # Delete mu, sigma, pool, logits, and labels, just in case
         del mu, sigma, pool, logits
+
         return IS_mean, IS_std, FID
 
     return get_inception_metrics

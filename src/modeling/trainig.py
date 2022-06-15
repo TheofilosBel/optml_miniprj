@@ -34,7 +34,7 @@ def train(
 
     print_training_args(args)
 
-    get_inception_metrics = prepare_inception_metrics_wrapper(args.inception, False)
+    get_inception_metrics = prepare_inception_metrics_wrapper(args.inception, device, False)
     sample_fn = functools.partial(sample_gema, g_ema=gan.netG, device=device, nz=args.nz, batch_size=args.batch_size)
 
     # Create batch of latent vectors that we will use to visualize the progression of the generator
@@ -66,7 +66,7 @@ def train(
 
             # Check how the generator is doing by saving G's output on fixed_noise
             if (iters % args.nb_fid_log_steps == 0) or ((epoch == args.num_epochs-1) and (i == len(dataloader)-1)):
-                IS_mean, IS_std, FID = get_inception_metrics(sample_fn, num_inception_images=10000, use_torch=False)
+                IS_mean, IS_std, FID = get_inception_metrics(sample_fn, num_inception_images=10000, device=device, use_torch=False)
                 tb_write_fid(args, tbwriter, IS_mean, IS_std, FID, epoch, i, iters, len(dataloader))
 
 

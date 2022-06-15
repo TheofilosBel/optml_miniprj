@@ -85,7 +85,6 @@ def save_checkpoint(
             else:
                 remove_checkpoint(checkpoint_base, model_dir_to_remove[0])
     else:
-        print("No checkpoint policy, we dont checpoint model!")
         return
 
     # Create checkpoint

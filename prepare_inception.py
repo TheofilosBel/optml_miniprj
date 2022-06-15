@@ -34,10 +34,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Calculate Inception v3 features for datasets')
 
     parser.add_argument('--dataroot', type=str, required=True, help='path to datset dir')
+    parser.add_argument('--output', type=str, required=True, help='path to output .pkl features file')
     parser.add_argument('--image_size', type=int, default=64, help='image dimensions (size x size)')
     parser.add_argument('--batch_size', default=64, type=int, help='batch size')
     parser.add_argument('--n_sample', type=int, default=50000)
-    parser.add_argument('--output', type=str, required=True, help='path to output .pkl features file')
     parser.add_argument('--image_mode', type=str, default='RGB')
     parser.add_argument('--dataset_name', type=str, help='[celeba-mask]')
     parser.add_argument('--workers', type=int, default=8)

@@ -20,6 +20,7 @@ from src.utils import plot_img
 from src.modeling.optimizers.extragradient import ExtraAdam, ExtraSGD
 from torch.optim import Adam, SGD
 
+OPTIMIZER_DOMAIN = ['Adam', 'SGD', 'ExtraAdam', 'ExtraSGD']
 
 def str_to_cls(cls_name:str):
     return getattr(sys.modules[__name__], cls_name)
@@ -27,6 +28,10 @@ def str_to_cls(cls_name:str):
 def main():
     # Parse arguments
     args = parse_args()
+    if args.optim not in OPTIMIZER_DOMAIN:
+        print(f'[ERR] Optimizer argument should be be one of "{OPTIMIZER_DOMAIN}", but is "{args.optim}".')
+        print(f'Re run with: --optim <Name>')
+        exit(-1)
 
     # Set random seed for reproducibility
     manualSeed = 999
