@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Parameter as P
 from torchvision.models.inception import inception_v3
-
+import os.path as op
 
 class WrapInception(nn.Module):
     def __init__(self, net):
@@ -252,6 +252,27 @@ def load_inception_net(parallel=False):
         print('Parallelizing Inception module...')
         inception_model = nn.DataParallel(inception_model)
     return inception_model
+
+
+# This checks if the inception pkl exists and if not returns a function that on call
+# prints a warning and returns 0 values
+def prepare_inception_metrics_wrapper(dataset, parallel, no_fid=False):
+    def wran_for_noincetpion(sample, num_inception_images, num_splits=10, prints=True, use_torch=True):
+        print(f"[WARN] Inception dataset set to {dataset}, but it dosen't exist! Reurn NaN inception & FID")
+        return np.NaN, np.NaN, np.NaN
+    def nowarn_for_noinception(sample, num_inception_images, num_splits=10, prints=True, use_torch=True):
+        return np.NaN, np.NaN, np.NaN
+
+    # If dataset has len() == 0 then we want to skip inception
+    if len(dataset) == 0 or dataset != None:
+        return nowarn_for_noinception
+
+    #  if the dataset is not None or just empty then wawrn at very iter
+    if op.isfile(dataset):
+        return prepare_inception_metrics(dataset, parallel, no_fid)
+    else:
+        print(f"[WARN] Inception dataset set to {dataset}, but it dosen't exist! Reurn NaN inception & FID")
+        return wran_for_noincetpion
 
 
 # This produces a function which takes in an iterator which returns a set number of samples

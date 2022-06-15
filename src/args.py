@@ -68,7 +68,7 @@ def parse_args():
     # Checkpointing args
     parser.add_argument("--checkpoint_dir", type=str, default="./checkpoints")
     parser.add_argument('--checkpoint_policy', type=int, default=-1,
-        help="Checkpoint policy: 0 -> Save all models | 1 -> Save nb_best_saved_models \
+        help="Checkpoint policy:-1 -> Dont Save | 0 -> Save all models | 1 -> Save nb_best_saved_models \
             2 -> Save best args.nb_best_saved_models per epoch")
 
     # Number of workers for dataloader

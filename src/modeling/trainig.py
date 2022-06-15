@@ -15,11 +15,7 @@ from src.modeling.utils import save_checkpoint
 from src.modeling.gan import GAN
 from src.modeling.train_logger import TBWritter, tb_write_fid, tb_write_metrics
 from src.utils import plot_real_vs_fake_imgs, save_gen_images
-from src.inception_utils import sample_gema, prepare_inception_metrics
-
-
-# TODO Make loss call 2 functoins, 1 for D and 1 for G
-# TODO Add WGAN-GP loss
+from src.inception_utils import sample_gema, prepare_inception_metrics_wrapper
 
 
 def train(
@@ -38,12 +34,11 @@ def train(
 
     print_training_args(args)
 
-    get_inception_metrics = prepare_inception_metrics(args.inception, False)
+    get_inception_metrics = prepare_inception_metrics_wrapper(args.inception, False)
     sample_fn = functools.partial(sample_gema, g_ema=gan.netG, device=device, nz=args.nz, batch_size=args.batch_size)
 
     # Create batch of latent vectors that we will use to visualize the progression of the generator
     fixed_noise = torch.randn(args.nb_fake_img, args.nz, 1, 1, device=device)
-    print("Fake image noise shape:", fixed_noise.shape)
 
     # Establish convention for real and fake labels during training
     real_label = 1.
@@ -82,7 +77,7 @@ def train(
             save_gen_images(args, img_list)
 
         # Save per epoch
-        # save_checkpoint(gan, args, epoch, iters)
+        save_checkpoint(gan, args, epoch, iters)
 
 
 
