@@ -56,13 +56,64 @@ def train(
     print("Starting Training Loop...")
     # For each epoch
     for epoch in tqdm(range(args.num_epochs), desc='Epochs'):
-        # For each batch in the dataloader
-        for i, data in tqdm(enumerate(dataloader, 0), total=len(dataloader), desc='Batch', leave=False):
+    
+        # Update the weights both G and D with mini-batch gradient descent
+        if args.sample_size == 'mini_batch':
 
-            # Train both G & D
-            errD, D_x, D_G_z1, label, fake = _train_D(gan, data, real_label, fake_label, optimizerD, criterion, device, args, i)
-            errG, D_G_z2 = _train_G(gan, fake, real_label, label, optimizerG, criterion, args, i)
+            # For each batch in the dataloader
+            for i, data in tqdm(enumerate(dataloader, 0), total=len(dataloader), desc='Batch', leave=False):
 
+                # Train both G & D
+                errD, D_x, D_G_z1, label, fake = _train_D(gan, data, real_label, fake_label, optimizerD, criterion, device, args, i)
+                errG, D_G_z2 = _train_G(gan, fake, real_label, label, optimizerG, criterion, args, i)
+
+                iters += 1
+
+                # Output training stats
+                if (iters % args.nb_log_steps == 0) or ((epoch == args.num_epochs-1) and (i == len(dataloader)-1)):
+                    tb_write_metrics(args, tbwriter, errD.item(), errG.item(), epoch, i, iters, len(dataloader), D_x, D_G_z1, D_G_z2)
+
+                # Check how the generator is doing by saving G's output on fixed_noise
+                if (iters % args.nb_fid_log_steps == 0) or ((epoch == args.num_epochs-1) and (i == len(dataloader)-1)):
+                    IS_mean, IS_std, FID = get_inception_metrics(sample_fn, num_inception_images=10000, use_torch=False)
+                    tb_write_fid(args, tbwriter, IS_mean, IS_std, FID, epoch, i, iters, len(dataloader))
+
+        # Update the weights both G and D with full-batch gradient descent
+        if args.sample_size == 'full_batch':
+        
+            # Train D
+            gan.netD.zero_grad()
+            fake_imgD_list = []
+            # For each batch in the dataloader accumulate gradients
+            for i, data in tqdm(enumerate(dataloader, 0), total=len(dataloader), desc='Batch', leave=False):
+                errD, D_x, D_G_z1, label, fake = _train_D(gan, data, real_label, fake_label, optimizerD, criterion, device, args, i)
+                fake_imgD_list.append(fake)
+                
+            # Optimizer step for D after accumulating gradients
+            if "Extra" == args.optim[:5]:
+                if i % 2 == 0:
+                    optimizerD.extrapolation()
+                else:
+                    optimizerD.step()
+            else:
+                optimizerD.step()
+
+            
+            # Train G
+            gan.netG.zero_grad()
+            # For each batch in the dataloader accumulate gradients
+            for i, data in tqdm(enumerate(dataloader, 0), total=len(dataloader), desc='Batch', leave=False):
+                errG, D_G_z2 = _train_G(gan, fake_imgD_list[i], real_label, label, optimizerG, criterion, args, i)
+                
+            # Optimizer step for G after accumulating gradients
+            if "Extra" == args.optim[:5]:
+                if i % 2 == 0:
+                    optimizerG.extrapolation()
+                else:
+                    optimizerG.step()
+            else:
+                optimizerG.step()
+                
             iters += 1
 
             # Output training stats
@@ -73,8 +124,8 @@ def train(
             if (iters % args.nb_fid_log_steps == 0) or ((epoch == args.num_epochs-1) and (i == len(dataloader)-1)):
                 IS_mean, IS_std, FID = get_inception_metrics(sample_fn, num_inception_images=10000, use_torch=False)
                 tb_write_fid(args, tbwriter, IS_mean, IS_std, FID, epoch, i, iters, len(dataloader))
-
-
+                
+                
         if epoch % args.fake_img_log_interval == 0 or epoch == args.num_epochs-1:
             with torch.no_grad():
                 fake = gan.netG(fixed_noise).detach().cpu()
@@ -106,7 +157,8 @@ def _train_D(
 
         in case network is wgan_gp then dont use criterion
     '''
-    gan.netD.zero_grad()
+    if args.sample_size == 'mini_batch':
+        gan.netD.zero_grad()
 
     ## Train with all-real batch
     # Format batch
@@ -153,14 +205,15 @@ def _train_D(
         errD += _grad_penalty(gan, real, fake, device, args)
         errD.backward()
 
-    # Optimizer step
-    if "Extra" == args.optim[:5]:
-        if i % 2 == 0:
-            optimizerD.extrapolation()
+    if args.sample_size == 'mini_batch':
+        # Optimizer step
+        if "Extra" == args.optim[:5]:
+            if i % 2 == 0:
+                optimizerD.extrapolation()
+            else:
+                optimizerD.step()
         else:
             optimizerD.step()
-    else:
-        optimizerD.step()
 
 
     return errD, D_x, D_G_z1, label, fake
@@ -178,7 +231,9 @@ def _train_G(
         Update G network: maximize log(D(G(z)))
     '''
 
-    gan.netG.zero_grad()
+    if args.sample_size == 'mini_batch':
+        gan.netG.zero_grad()
+        
     label.fill_(real_label)  # fake labels are real for generator cost
 
     # Since we just updated D, perform another forward pass of all-fake batch through D
@@ -195,14 +250,15 @@ def _train_G(
     errG.backward()
     D_G_z2 = output.mean().item()
 
-    # Update G
-    if "Extra" == args.optim[:5]:
-        if i % 2 == 0:
-            optimizerG.extrapolation()
+    if args.sample_size == 'mini_batch':
+        # Update G
+        if "Extra" == args.optim[:5]:
+            if i % 2 == 0:
+                optimizerG.extrapolation()
+            else:
+                optimizerG.step()
         else:
             optimizerG.step()
-    else:
-        optimizerG.step()
 
     return errG, D_G_z2
 

@@ -33,6 +33,7 @@ def parse_args():
     parser.add_argument("--l_gp", type=float, default=10)
 
     # Batch size during training
+    parser.add_argument("--sample_size", type=str, default='mini_batch', help='full_batch for gradient descent, mini_batch for mini-batch gradient descent')
     parser.add_argument("--batch_size", type=int, default=128)
 
     # Spatial size of training images. All images will be resized to this size.
