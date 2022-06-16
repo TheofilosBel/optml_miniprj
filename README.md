@@ -47,3 +47,10 @@ Use the following:
 ```bash
 sbatch sbatch.script "--optim <name>"   # Name can be: [Adam, SGD, ExtraAdam, ExtraSGD]
 ```
+
+
+## Extract Losses to CSV to create figures:
+Use the following
+```bash
+python scripts/parse_logs.py --tb_dir tensorboard/ --out_dir <dir> # By default we output on tensorboard, but if you change it make sure to change this also
+```
