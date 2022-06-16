@@ -1,7 +1,9 @@
 import os
+from pydoc import describe
 import re
 import argparse
 import pandas as pd
+from tqdm import tqdm
 import os.path as op
 
 if __name__ == '__main__':
@@ -10,7 +12,10 @@ if __name__ == '__main__':
     parser.add_argument("--out_dir", required=True, type=str, help='The dir to dump the parsed logs as csv ')
     args = parser.parse_args()
     tensorboard_dir = args.tb_dir
-    assert op.isdir(tensorboard_dir), "Argument 'tb_dir' doesnt exist"
+
+    if not op.isdir(tensorboard_dir):
+        print("[INFO] Argument 'tb_dir' doesn't exist, we will create it")
+        os.mkdir(tensorboard_dir)
 
     # define possible regex
     num=r'(-?[0-9]+\.?[0-9]*)'
@@ -19,13 +24,19 @@ if __name__ == '__main__':
     epochs_regex =  fr'^\[(\d*)/(\d*)\]\[(\d*)/(\d*)\]\s*'
 
     data_fid, data_loss = [], []
-    for optim_name in os.listdir(tensorboard_dir):
+    dir_list = os.listdir(tensorboard_dir)
+    for optim_name in tqdm(dir_list, desc='Parsing optimizer runs', total=len(dir_list)):
         optim_dir = op.join(tensorboard_dir, optim_name)
         for run_name in os.listdir(optim_dir):
             run_dir = op.join(optim_dir, run_name)
 
             # Get info from run_name
-            lrD, lrG, bsz, beta = re.findall(rf'lrD{num}_lrG{num}_bsz{num}_.+?beta{num}', run_name)[0]
+            matches = re.findall(rf'lrD{num}_lrG{num}_bsz{num}_.+?beta{num}', run_name)
+            if len(matches) == 0:
+                matches = re.findall(rf'lr{num}_bsz{num}_.+?beta{num}', run_name)
+                matches = [(matches[0][0], ) + matches[0]] # we had 1 lr for d and g
+
+            lrD, lrG, bsz, beta = matches[0]
             loss = 'Wgangp' if 'wgan' in run_name else 'St'
             line_dict = {'optimizer': optim_name,
                         "lrD": lrD, "lrG": lrG, "bsz":bsz,
@@ -60,7 +71,9 @@ if __name__ == '__main__':
                             'IS_mean': float(IS_mean), 'IS_std': float(IS_std), 'FID':float(FID)
                         })
 
+    print("Saving to csv..")
     loss_df = pd.DataFrame(data_loss)
+    print("Print a sample from parsing results..")
     print(loss_df.head())
     loss_df['iter'] = loss_df['cur_epoch']*loss_df['max_iter'] + loss_df['cur_iter']
 
@@ -74,3 +87,5 @@ if __name__ == '__main__':
 
     loss_df.to_csv(op.join(args.out_dir, 'loss_df.csv'))
     fid_df.to_csv(op.join(args.out_dir, 'fid_df.csv'))
+
+    print("Done")

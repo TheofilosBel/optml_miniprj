@@ -142,3 +142,6 @@ inception_features/*
 
 script_inc.run
 script_train.run
+tensorboard
+csvs
+data
