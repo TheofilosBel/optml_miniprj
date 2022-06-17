@@ -31,9 +31,9 @@ if __name__ == '__main__':
             run_dir = op.join(optim_dir, run_name)
 
             # Get info from run_name
-            matches = re.findall(rf'lrD{num}_lrG{num}_bsz{num}_.+?beta{num}', run_name)
+            matches = re.findall(rf'lrD{num}_lrG{num}_bsz{num}_.+?beta(0\.[0-9])', run_name)
             if len(matches) == 0:
-                matches = re.findall(rf'lr{num}_bsz{num}_.+?beta{num}', run_name)
+                matches = re.findall(rf'lr{num}_bsz{num}_.+?beta(0\.[0-9])', run_name)
                 matches = [(matches[0][0], ) + matches[0]] # we had 1 lr for d and g
 
             lrD, lrG, bsz, beta = matches[0]

@@ -140,6 +140,7 @@ train-gan*.out
 checkpoints/*
 inception_features/*
 
+figs
 script_inc.run
 script_train.run
 tensorboard
