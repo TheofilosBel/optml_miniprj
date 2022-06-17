@@ -1,18 +1,19 @@
 # Evaluating Optimization Methods for Generative Adversarial Networks
 
-In this project, we investigate and compare different optimization methods for GAN training
+In this project, we investigate and compare different optimization methods for GAN training.
 
 This project is the work of:
-* Orest Gkini
-* Theodoros Bitsakis
-* Theofilos Belmpas
+* Orest Gkini (orest.gkini@epfl.ch)
+* Theodoros Bitsakis (theodoros.bitsakis@epfl.ch)
+* Theofilos Belmpas (theofilos.belmpas@epfl.ch)
 
 <hr>
 
 ## Set up
 
 ### Install Python dependencies
-You have 2 options:
+
+There are two options:
 
 **A. Use poetry :**
 
@@ -28,14 +29,14 @@ Install poetry using:  https://python-poetry.org/docs/#installation
 * [Optional] Create your virtual environment
 * Use `pip install -r requirements.txt`
 
-
 ### Get data dependencies
 
 1. Download this file: https://drive.google.com/file/d/0B7EVK8r0v71pZjFTYXZWM3FlRnM/view?usp=sharing&resourcekey=0-dYn9z10tMJOBAkviAcfdyQ
 2. unzip into folder a `<root>/data`
 
 ### [OPTIONAL] Create Inception features
-If you want the model to output FID and Inception score you need to run the following script:
+
+If you want the model to output the FID and Inception score you need to run the following script:
 ```bash
 mkdir inception_features
 python prepare_inception.py --dataroot data/ --output inception_features/celeb_features.pkl
@@ -45,7 +46,7 @@ python prepare_inception.py --dataroot data/ --output inception_features/celeb_f
 
 ## Run
 
-1. Set up arguments in [args.py](./src/args.py) or pass at runtime them using `--<argname> <argvalue>`
+1. Set up arguments in [args.py](./src/args.py) or pass them at runtime using `--<argname> <argvalue>`
 2. Start training:
     * Run locally
         ```
@@ -62,14 +63,14 @@ python prepare_inception.py --dataroot data/ --output inception_features/celeb_f
 
 **Run-logs to csv**
 
-After you have run the models and created some data under the `tensorboard` directory, run the following to extract a dataframe from the run logs:
+After running the models and creating some log data under the `tensorboard` directory, run the following command to extract a dataframe from the logs:
 ```bash
-python cmd/parse_logs.py --tb_dir tensorboard/ --out_dir <dir> # By default we output on tensorboard, but if you change it make sure to change this also
+python cmd/parse_logs.py --tb_dir tensorboard/ --out_dir <dir> # By default we output on tensorboard, but if you change it make sure to change this, too
 ```
 
 **Create figures**
 
-To create the figures that we have in our report you can either use your own run-logs or download our runs from [google-cloud](https://drive.google.com/file/d/1fMa3u94tJV4WGxNtBagzc-z3GqEonu_M/view?usp=sharing)
+To re-create the figures from our report you can either use your own run-logs or download our runs from [google-cloud](https://drive.google.com/file/d/1fMa3u94tJV4WGxNtBagzc-z3GqEonu_M/view?usp=sharing) and execute:
 ```bash
 python cmd/create_figs.py --fid_csv <path> --loss_csv <path> --figs_output <dir>
 ```
