@@ -87,7 +87,6 @@ def create_ExtraAdam_figures(base_path, metrics_df, min_threshold_list=[[12, 14.
         extra_adam_optimizer_df = metrics_df[cols_filter]
         extra_adam_grouped_df = extra_adam_optimizer_df.groupby('name')[['FID', 'beta']].min('FID').reset_index()
 
-        extra_adam_grouped_df.to_csv("test.csv")
         col_filter = ((extra_adam_grouped_df['FID']<min_threshold_1) & (extra_adam_grouped_df['beta']==0.9)) | \
                         ((extra_adam_grouped_df['FID']<min_threshold_2) & (extra_adam_grouped_df['beta']==0.5))
 
@@ -316,4 +315,5 @@ if __name__ == '__main__':
     # Create loss figures
     print("Create loss figures...")
     create_loss_figures(args.figs_output, fid_df)
+
 
